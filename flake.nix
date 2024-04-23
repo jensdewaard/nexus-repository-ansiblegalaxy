@@ -9,23 +9,26 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      buildInputs = [
+        pkgs.zulu8
+        pkgs.maven
+      ];
     in 
   {
 
-    packages.x86_64-linux.nexus-repository-ansiblegalaxy = pkgs.stdenv.mkDerivation {
+    packages.x86_64-linux.nexus-repository-ansiblegalaxy = pkgs.maven.buildMavenPackage rec {
+        inherit buildInputs;
         pname = "nexus-repository-ansiblegalaxy";
         version = "0.3.0";
 
-        buildInputs = [ pkgs.jdk8 pkgs.maven ];
         propagatedBuildInputs = [ ];
 
         src = self;
 
-        buildPhase = ''
-            mvn clean package -DbuildKar
-        '';
+        mvnHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
         installPhase = ''
+              mkdir -p $out/bin $out/share/nexus-repository-ansiblegalaxy
         '';
     };
 
@@ -33,10 +36,7 @@
     packages.x86_64-linux.default = self.packages.x86_64-linux.nexus-repository-ansiblegalaxy;
 
     devShell.x86_64-linux = pkgs.mkShell {
-      buildInputs = with pkgs; [
-        jdk8
-        maven
-      ];
+      inherit buildInputs;
     };
   };
 }
